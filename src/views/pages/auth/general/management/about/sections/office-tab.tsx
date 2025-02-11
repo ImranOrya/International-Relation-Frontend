@@ -159,7 +159,7 @@ export default function OfficeTab() {
           {t("general_desc")}
         </CardDescription>
       </CardHeader>
-      <CardContent className="flex flex-col gap-y-8">
+      <CardContent className="px-0 pt-0 flex flex-col gap-y-8">
         {loading ? (
           <NastranSpinner />
         ) : (

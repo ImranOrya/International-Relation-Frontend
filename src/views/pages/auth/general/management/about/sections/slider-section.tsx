@@ -25,7 +25,6 @@ import { UserPermission } from "@/database/tables";
 import { SectionEnum } from "@/lib/constants";
 import { useUserAuthState } from "@/context/AuthContextProvider";
 import { useTranslation } from "react-i18next";
-import ButtonSpinner from "@/components/custom-ui/spinner/ButtonSpinner";
 type SliderProps = {
   id: string;
   picture: string;
@@ -37,7 +36,7 @@ type PictureProps = {
   imageUrl: string;
   isactive: boolean;
 };
-export default function SliderTab() {
+export default function SliderSection() {
   const { user } = useUserAuthState();
   const { t } = useTranslation();
   const [technical, setTechnical] = useState<SliderProps[]>([]);
@@ -77,7 +76,6 @@ export default function SliderTab() {
     // 2. Store
     const formData = new FormData();
     formData.append("id", pictureData.id);
-    formData.append("staff_type_id", StaffEnum.slider.toString());
     if (pictureData.picture) formData.append("picture", pictureData.picture);
 
     try {
@@ -247,7 +245,9 @@ export default function SliderTab() {
                         />
                       </label>
                     </IconButton>
-                    <PrimaryButton onClick={saveData}>{t("add")}</PrimaryButton>
+                    <PrimaryButton className="ml-4 mb-4" onClick={saveData}>
+                      {t("add")}
+                    </PrimaryButton>
                   </>
                 )}
               </div>

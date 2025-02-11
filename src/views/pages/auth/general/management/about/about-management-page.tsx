@@ -4,8 +4,8 @@ import { useTranslation } from "react-i18next";
 import TechnicalTab from "./sections/technical-tab";
 import DirectorTab from "./sections/director-tab";
 import ManagerTab from "./sections/manager-tab";
-import SliderTab from "./sections/slider-tab";
 import OfficeTab from "./sections/office-tab";
+import SliderSection from "./sections/slider-section";
 
 export default function AboutManagementPage() {
   const { t, i18n } = useTranslation();
@@ -64,7 +64,7 @@ export default function AboutManagementPage() {
         <ManagerTab />
       </TabsContent>
       <TabsContent value="slid" className="w-full px-4 pt-8">
-        <SliderTab />
+        <SliderSection />
       </TabsContent>
       <TabsContent value="off" className="w-full px-4 pt-8">
         <OfficeTab />
