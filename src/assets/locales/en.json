@@ -302,5 +302,7 @@
   "start_date": "Start Date",
   "end_date": "End Date",
   "currently": "Currently",
-  "formerly": "Formerly"
+  "formerly": "Formerly",
+  "comment": "Comment",
+  "extend_reg": "Extend Registration"
 }

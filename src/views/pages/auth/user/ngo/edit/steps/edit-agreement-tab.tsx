@@ -1,10 +1,11 @@
-import { ChevronsUpDown } from "lucide-react";
+import { ChevronsUpDown, RefreshCcw } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "@/components/ui/use-toast";
 import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -15,6 +16,7 @@ import { useUserAuthState } from "@/context/AuthContextProvider";
 import {
   Agreement,
   AgreementDocument,
+  NgoStatus,
   UserPermission,
 } from "@/database/tables";
 import { SectionEnum } from "@/lib/constants";
@@ -29,14 +31,16 @@ import CheckListChooser from "@/components/custom-ui/chooser/CheckListChooser";
 import { toLocaleDate } from "@/lib/utils";
 import { useGlobalState } from "@/context/GlobalStateContext";
 import { FileType } from "@/lib/types";
+import PrimaryButton from "@/components/custom-ui/button/PrimaryButton";
+import ButtonSpinner from "@/components/custom-ui/spinner/ButtonSpinner";
 
-export default function EditNgoAgreement() {
+export default function EditAgreemenTab() {
   const { user } = useUserAuthState();
   const { t } = useTranslation();
   let { id } = useParams();
   const [state] = useGlobalState();
-  const [loading, setLoading] = useState(true);
-  const [_failed, setFailed] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [failed, setFailed] = useState(false);
   const [agreements, setAgreements] = useState<Agreement[]>([]);
 
   const per: UserPermission | undefined = user?.permissions.get(
@@ -45,11 +49,14 @@ export default function EditNgoAgreement() {
   const _hasEdit = per ? per?.edit : false;
 
   const loadAgreement = async () => {
+    if (loading) return;
+    setLoading(true);
     try {
       const response = await axiosClient.get(`ngo/agreement/${id}`);
       if (response.status == 200) {
         const agreement = response.data.agreement;
         setAgreements(agreement);
+        if (failed) setFailed(false);
       }
     } catch (error: any) {
       toast({
@@ -67,7 +74,7 @@ export default function EditNgoAgreement() {
   }, []);
 
   return (
-    <Card className=" h-full">
+    <Card className="h-fit">
       <CardHeader className="space-y-0">
         <CardTitle className="rtl:text-3xl-rtl ltr:text-2xl-ltr">
           {t("account_information")}
@@ -91,6 +98,7 @@ export default function EditNgoAgreement() {
                 <AgreementDocumentComponent
                   ngo_id={id}
                   index={index}
+                  key={index}
                   state={state}
                   agreement={agreement}
                 />
@@ -99,6 +107,24 @@ export default function EditNgoAgreement() {
           </div>
         </div>
       </CardContent>
+
+      {failed && (
+        <CardFooter>
+          <PrimaryButton
+            disabled={loading}
+            onClick={async () => await loadAgreement()}
+            className={`${
+              loading && "opacity-90"
+            } bg-red-500 hover:bg-red-500/70`}
+            type="submit"
+          >
+            <ButtonSpinner loading={loading}>
+              {t("failed_retry")}
+              <RefreshCcw className="ltr:ml-2 rtl:mr-2" />
+            </ButtonSpinner>
+          </PrimaryButton>
+        </CardFooter>
+      )}
     </Card>
   );
 }
@@ -114,7 +140,7 @@ const AgreementDocumentComponent = (props: AgreementProps) => {
   const { agreement, index, state, ngo_id } = props;
   const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
-  const [_failed, setFailed] = useState(false);
+  const [failed, setFailed] = useState(false);
 
   const [documents, setDocuments] = useState<AgreementDocument[]>([]);
   const loadAgreementDocuments = async (agreement_id: string) => {
@@ -129,6 +155,7 @@ const AgreementDocumentComponent = (props: AgreementProps) => {
       if (response.status == 200) {
         const agreement_documents = response.data.agreement_documents;
         setDocuments(agreement_documents);
+        if (failed) setFailed(false);
       }
     } catch (error: any) {
       toast({
@@ -165,8 +192,12 @@ const AgreementDocumentComponent = (props: AgreementProps) => {
       <CollapsibleContent className="space-y-2">
         {loading ? (
           <NastranSpinner className="size-[20px]" />
+        ) : failed ? (
+          <h1 className="rtl:text-xl-rtl ltr:text-sm-ltr text-white bg-red-500 text-center">
+            {t("error")}
+          </h1>
         ) : documents.length == 0 ? (
-          <h1 className=" rtl:text-xl-rtl bg-primary/20 text-center">
+          <h1 className=" rtl:text-xl-rtl ltr:text-sm-ltr bg-primary/20 text-center">
             {t("no_content")}
           </h1>
         ) : (
@@ -176,7 +207,7 @@ const AgreementDocumentComponent = (props: AgreementProps) => {
               key={index}
               url={`${
                 import.meta.env.VITE_API_BASE_URL
-              }/api/v1/ngo/file/upload`}
+              }/api/v1/ngo/checklist/file/upload`}
               headers={{
                 "X-API-KEY": import.meta.env.VITE_BACK_END_API_TOKEN,
                 "X-SERVER-ADDR": import.meta.env.VITE_BACK_END_API_IP,
@@ -190,27 +221,20 @@ const AgreementDocumentComponent = (props: AgreementProps) => {
               defaultFile={document as FileType}
               validTypes={["image/png", "image/jpeg", "image/gif"]}
               uploadParam={{
+                ngo_id: ngo_id,
                 document_id: document.document_id,
+                checklist_id: document.checklist_id,
               }}
               onComplete={async (record: any) => {
-                for (const element of record) {
-                  const item = element[element.length - 1];
-                  // setDocuments((prevDocs) => {
-                  //   const updatedDocs = new Map(prevDocs); // Create a new Map to preserve immutability
-                  //   updatedDocs.set(documents.document_id, item); // Add the new document to the Map
-                  //   return updatedDocs; // Return the updated Map
-                  // });
-                }
+                // for (const element of record) {
+                //   const item = element[element.length - 1];
+                // }
               }}
-              onStart={async (file: File) => {
-                // setAgreementDocuments((prevDocs) => {
-                //   const updatedDocs = new Map(prevDocs); // Create a new Map to preserve immutability
-                //   updatedDocs.set(
-                //     documents.document_id,
-                //     file as any
-                //   ); // Add the new document to the Map
-                //   return updatedDocs; // Return the updated Map
-                // });
+              onStart={async (file: any) => {
+                const updated = documents.map((item) =>
+                  item.checklist_id === file.checklist_id ? file : item
+                );
+                setDocuments(updated);
               }}
             />
           ))

@@ -14,7 +14,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Check, ChevronsUpDown } from "lucide-react";
-import { useEffect, useState } from "react";
+import { memo, useEffect, useState } from "react";
 import NastranSpinner from "../spinner/NastranSpinner";
 import { toast } from "@/components/ui/use-toast";
 import { cn } from "@/lib/utils";
@@ -53,7 +53,7 @@ export interface IAPIComboboxProps {
   translate?: boolean;
 }
 
-export default function APICombobox(props: IAPIComboboxProps) {
+function APICombobox(props: IAPIComboboxProps) {
   const {
     onSelect,
     apiUrl,
@@ -236,3 +236,5 @@ export default function APICombobox(props: IAPIComboboxProps) {
     </div>
   );
 }
+
+export default memo(APICombobox);

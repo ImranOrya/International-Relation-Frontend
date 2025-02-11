@@ -189,6 +189,7 @@ export type NgoInformation = {
   email: string;
   contact: string;
   username: string;
+  registration_expired: boolean;
   created_at: string;
 };
 

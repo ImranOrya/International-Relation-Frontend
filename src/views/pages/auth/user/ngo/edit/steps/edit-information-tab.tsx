@@ -54,7 +54,7 @@ interface EditNgoInformationProps {
   establishment_date: DateObject;
   optional_lang: string;
 }
-export default function EditNgoInformation() {
+export default function EditInformationTab() {
   const { user } = useUserAuthState();
   const { t } = useTranslation();
   let { id } = useParams();
@@ -90,9 +90,6 @@ export default function EditNgoInformation() {
     loadInformation();
   }, []);
 
-  const handleChange = (_e: any) => {
-    // const { name, value } = e.target;
-  };
   const saveData = async () => {
     if (loading || id === undefined) {
       setLoading(false);
@@ -218,7 +215,10 @@ export default function EditNgoInformation() {
               type="text"
               className="uppercase"
               errorMessage={error.get("abbr")}
-              onBlur={handleChange}
+              onBlur={(e: any) => {
+                const { name, value } = e.target;
+                setNgoData({ ...ngoData, [name]: value });
+              }}
             />
             <APICombobox
               placeholderText={t("search_item")}
@@ -248,7 +248,10 @@ export default function EditNgoInformation() {
               type="text"
               name="contact"
               errorMessage={error.get("contact")}
-              onChange={handleChange}
+              onChange={(e: any) => {
+                const { name, value } = e.target;
+                setNgoData({ ...ngoData, [name]: value });
+              }}
             />
             <CustomInput
               size_="sm"
@@ -260,7 +263,10 @@ export default function EditNgoInformation() {
               placeholder={t("enter_your_email")}
               type="email"
               errorMessage={error.get("email")}
-              onChange={handleChange}
+              onChange={(e: any) => {
+                const { name, value } = e.target;
+                setNgoData({ ...ngoData, [name]: value });
+              }}
               dir="ltr"
               className="rtl:text-right"
             />
@@ -275,7 +281,10 @@ export default function EditNgoInformation() {
               placeholder={t("enter_your_email")}
               type="moe_registration_no"
               errorMessage={error.get("moe_registration_no")}
-              onChange={handleChange}
+              onChange={(e: any) => {
+                const { name, value } = e.target;
+                setNgoData({ ...ngoData, [name]: value });
+              }}
               dir="ltr"
               className="rtl:text-right"
             />

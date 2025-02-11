@@ -36,7 +36,6 @@ export const StaffEnum = {
   manager: 1,
   director: 2,
   technical_support: 3,
-  slider:4
 };
 export const CountryEnum = {
   afghanistan: 1,

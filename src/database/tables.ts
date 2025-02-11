@@ -12,7 +12,9 @@ export type StatusType =
   | { active: 1 }
   | { blocked: 2 }
   | { unregistered: 3 }
-  | { not_logged_in: 4 };
+  | { not_logged_in: 4 }
+  | { in_progress: 5 }
+  | { register_form_submited: 6 };
 
 export type Permission = {
   name: string;
@@ -136,6 +138,8 @@ export type NgoStatus = {
   id: string;
   ngo_id: string;
   status_type_id: string;
+  is_active: string;
+  name: string;
   comment: string;
   created_at: string;
 };

@@ -302,5 +302,8 @@
   "start_date": "تاریخ شروع",
   "end_date": "تاریخ ختم",
   "currently": "بر حال",
-  "formerly": "قبلا"
+  "formerly": "قبلا",
+  "introduction": "مقدمه",
+  "comment": "توضیح",
+  "extend_reg": "تمدید ثبت نام"
 }

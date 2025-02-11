@@ -305,54 +305,18 @@ export default function EditNgoProgress() {
           {
             component: <MoreInformationTab />,
             validationRules: [
-              {
-                name: "vision_english",
-                rules: ["required", "min:30"],
-              },
-              {
-                name: "vision_pashto",
-                rules: ["required", "min:30"],
-              },
-              {
-                name: "vision_farsi",
-                rules: ["required", "min:30"],
-              },
-              {
-                name: "mission_english",
-                rules: ["required", "min:30"],
-              },
-              {
-                name: "mission_pashto",
-                rules: ["required", "min:30"],
-              },
-              {
-                name: "mission_farsi",
-                rules: ["required", "min:30"],
-              },
-              {
-                name: "general_objes_english",
-                rules: ["required", "min:30"],
-              },
-              {
-                name: "general_objes_pashto",
-                rules: ["required", "min:30"],
-              },
-              {
-                name: "general_objes_farsi",
-                rules: ["required", "min:30"],
-              },
-              {
-                name: "objes_in_afg_english",
-                rules: ["required", "min:30"],
-              },
-              {
-                name: "objes_in_afg_pashto",
-                rules: ["required", "min:30"],
-              },
-              {
-                name: "objes_in_afg_farsi",
-                rules: ["required", "min:30"],
-              },
+              { name: "vision_english", rules: ["required", "min:10"] },
+              { name: "vision_farsi", rules: ["required", "min:10"] },
+              { name: "vision_pashto", rules: ["required", "min:10"] },
+              { name: "mission_english", rules: ["required", "min:10"] },
+              { name: "mission_farsi", rules: ["required", "min:10"] },
+              { name: "mission_pashto", rules: ["required", "min:10"] },
+              { name: "general_objes_english", rules: ["required", "min:10"] },
+              { name: "general_objes_farsi", rules: ["required", "min:10"] },
+              { name: "general_objes_pashto", rules: ["required", "min:10"] },
+              { name: "objes_in_afg_english", rules: ["required", "min:10"] },
+              { name: "objes_in_afg_farsi", rules: ["required", "min:10"] },
+              { name: "objes_in_afg_pashto", rules: ["required", "min:10"] },
             ],
           },
           {

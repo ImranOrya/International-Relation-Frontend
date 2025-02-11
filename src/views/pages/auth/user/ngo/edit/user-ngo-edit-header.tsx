@@ -6,16 +6,16 @@ import { toast } from "@/components/ui/use-toast";
 import { useTranslation } from "react-i18next";
 import axiosClient from "@/lib/axois-client";
 import NastranSpinner from "@/components/custom-ui/spinner/NastranSpinner";
-import { NgoInformation } from "@/lib/types";
 import { UserPermission } from "@/database/tables";
 import { SectionEnum } from "@/lib/constants";
 import { useUserAuthState } from "@/context/AuthContextProvider";
+import { INgoInformation } from "./user-ngo-edit-page";
 
 export interface UserEditHeaderProps {
   id: string | undefined;
-  userData: NgoInformation | undefined;
+  userData: INgoInformation | undefined;
   failed: boolean;
-  setUserData: Dispatch<SetStateAction<NgoInformation | undefined>>;
+  setUserData: Dispatch<SetStateAction<INgoInformation | undefined>>;
 }
 
 export default function UserNgoEditHeader(props: UserEditHeaderProps) {
@@ -90,7 +90,10 @@ export default function UserNgoEditHeader(props: UserEditHeaderProps) {
         // Change logged in user data
         setUserData({
           ...userData,
-          profile: response.data.profile,
+          ngoInformation: {
+            ...userData.ngoInformation,
+            profile: response.data.profile,
+          },
         });
         toast({
           toastType: "SUCCESS",
@@ -115,7 +118,7 @@ export default function UserNgoEditHeader(props: UserEditHeaderProps) {
     }
   };
   const deleteProfilePicture = async () => {
-    if (userData?.profile == "") {
+    if (userData?.ngoInformation?.profile == "") {
       toast({
         toastType: "ERROR",
         title: t("error"),
@@ -133,7 +136,10 @@ export default function UserNgoEditHeader(props: UserEditHeaderProps) {
         // Change logged in user data
         setUserData({
           ...userData,
-          profile: undefined,
+          ngoInformation: {
+            ...userData.ngoInformation,
+            profile: undefined,
+          },
         });
         toast({
           toastType: "SUCCESS",
@@ -155,7 +161,7 @@ export default function UserNgoEditHeader(props: UserEditHeaderProps) {
   return (
     <div className="self-center text-center">
       <CachedImage
-        src={userData?.profile}
+        src={userData?.ngoInformation?.profile}
         alt="Avatar"
         shimmerClassName="size-[86px] !mt-6 mx-auto shadow-lg border border-primary/30 rounded-full"
         className="size-[86px] !mt-6 object-center object-cover mx-auto shadow-lg border border-tertiary rounded-full"
@@ -200,14 +206,14 @@ export default function UserNgoEditHeader(props: UserEditHeaderProps) {
         </div>
       )}
 
-      <h1 className="text-primary font-semibold rtl:text-2xl-rtl ltr:text-4xl-ltr">
-        {userData?.username}
+      <h1 className="text-primary uppercase font-semibold rtl:text-2xl-rtl ltr:text-4xl-ltr max-w-64 truncate">
+        {userData?.ngoInformation?.username}
       </h1>
-      <h1 className="leading-6 rtl:text-sm-rtl ltr:text-2xl-ltr">
-        {userData?.email}
+      <h1 className="leading-6 rtl:text-sm-rtl ltr:text-2xl-ltr max-w-64 truncate">
+        {userData?.ngoInformation?.email}
       </h1>
       <h1 dir="ltr" className="text-primary rtl:text-md-rtl ltr:text-xl-ltr">
-        {userData?.contact}
+        {userData?.ngoInformation?.contact}
       </h1>
     </div>
   );

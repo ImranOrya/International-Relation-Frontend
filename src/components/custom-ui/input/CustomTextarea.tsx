@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 import React from "react";
 
 export interface CustomTextareaProps
-  extends React.InputHTMLAttributes<HTMLTextAreaElement> {
+  extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
   requiredHint?: string;
   lable?: string;
   parantClassName?: string;
@@ -15,7 +15,6 @@ const CustomTextarea = React.forwardRef<
 >((props, ref: any) => {
   const {
     className,
-    type,
     requiredHint,
     errorMessage,
     required,
