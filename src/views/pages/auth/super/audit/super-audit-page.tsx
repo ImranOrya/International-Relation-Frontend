@@ -9,6 +9,7 @@ import {
 import { LockKeyhole } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
+import AuditDropdown from "./audit-dropdown";
 
 export default function SuperReportsPage() {
   const { t } = useTranslation();
@@ -30,10 +31,7 @@ export default function SuperReportsPage() {
           </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
-      <div className=" flex flex-col items-center my-auto h-full justify-center mt-32 bg-primary/5 w-fit mx-auto rounded-xl p-6 gap-y-2">
-        <LockKeyhole className="text-orange-500 size-[32px]" />
-        <h1 className="text-[20px] text-justify">{t("under_testing")}</h1>
-      </div>
+      <AuditDropdown />
     </div>
   );
 }
