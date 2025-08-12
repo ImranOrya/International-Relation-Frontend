@@ -15,6 +15,7 @@ export default function AddDonorAccount() {
     const { name, value } = e.target;
     setUserData((prev: any) => ({ ...prev, [name]: value }));
   };
+
   return (
     <div className="flex flex-col mt-10 w-full lg:w-[60%] gap-y-6 pb-12">
       <CustomInput
@@ -70,7 +71,7 @@ export default function AddDonorAccount() {
         lable={t("password")}
         required={true}
         requiredHint={`* ${t("required")}`}
-        defaultValue={userData["password"] ? userData["password"] : ""}
+        defaultValue={userData["password"] || ""}
         onChange={handleChange}
         placeholder={t("enter_password")}
         errorMessage={error.get("password")}

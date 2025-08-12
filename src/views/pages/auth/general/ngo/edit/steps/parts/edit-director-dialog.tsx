@@ -23,6 +23,7 @@ import SingleTab from "@/components/custom-ui/input/mult-tab/parts/SingleTab";
 import APICombobox from "@/components/custom-ui/combobox/APICombobox";
 import MultiTabTextarea from "@/components/custom-ui/input/mult-tab/MultiTabTextarea";
 import NastranSpinner from "@/components/custom-ui/spinner/NastranSpinner";
+import { CountryEnum } from "@/lib/constants";
 
 export interface EditDirectorDialogProps {
   onComplete: (director: IDirector) => void;
@@ -319,7 +320,7 @@ export default function EditDirectorDialog(props: EditDirectorDialogProps) {
             selectedItem={userData?.nationality?.name}
             placeHolder={t("select_a")}
             errorMessage={error.get("nationality")}
-            apiUrl={"countries"}
+            apiUrl={"nationalities"}
             mode="single"
           />
           <APICombobox
@@ -368,7 +369,7 @@ export default function EditDirectorDialog(props: EditDirectorDialogProps) {
               selectedItem={userData?.province?.name}
               placeHolder={t("select_a")}
               errorMessage={error.get("province")}
-              apiUrl={"provinces/" + 1}
+              apiUrl={"provinces/" + CountryEnum.afghanistan}
               mode="single"
             />
             {userData.province && (

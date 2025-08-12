@@ -1,11 +1,10 @@
 import CustomMultiDatePicker from "@/components/custom-ui/DatePicker/CustomMultiDatePicker";
 import NastranSpinner from "@/components/custom-ui/spinner/NastranSpinner";
-import { toast } from "@/components/ui/use-toast";
 import { ScheduleDTO } from "@/database/tables";
 import { useDatasource } from "@/hooks/use-datasource";
 import axiosClient from "@/lib/axois-client";
 import { generateUUID, isSameDatePure, isStartDateSmaller } from "@/lib/utils";
-import { CalendarPlus } from "lucide-react";
+import { CalendarMinus, CalendarPlus } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { DateObject } from "react-multi-date-picker";
@@ -117,8 +116,8 @@ export default function Schedules() {
                   notAlllowed ? "cursor-not-allowed" : "cursor-pointer"
                 }`}
               >
-                <div className="bg-primary/90 rounded text-white px-1">
-                  <h1 className="border-b">{item.day}</h1>
+                <div className="rounded bg-primary/10 flex justify-between px-1 border-b">
+                  <h1>{item.day}</h1>
                   <h1>{item.weekday}</h1>
                 </div>
 
@@ -127,7 +126,7 @@ export default function Schedules() {
                     className="text-center cursor-pointer space-y-1 mx-auto w-fit"
                     onClick={() => navigate(`/schedules/${item.data?.id}`)}
                   >
-                    <CalendarPlus className="size-[18px] mx-auto" />
+                    <CalendarMinus className="size-[18px] mx-auto" />
                     <div className="font-bold text-tertiary">
                       {item.data.status}
                     </div>
@@ -139,8 +138,8 @@ export default function Schedules() {
                     }}
                     className={`text-center space-y-1 mx-auto w-fit`}
                   >
-                    <CalendarPlus className="size-[18px] mx-auto" />
-                    <h1>Not Scheduled</h1>
+                    <CalendarPlus className="size-[18px] text-tertiary mx-auto" />
+                    <h1>{t("not_scheduled")}</h1>
                   </div>
                 )}
               </div>
