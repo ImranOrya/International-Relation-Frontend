@@ -299,8 +299,9 @@ export interface ActivityModel {
 export interface CenterBudget {
   id: string;
   province: { id: string; name: string };
-  district: { id: string; name: string };
+  district: { id: string; name: string }[];
   villages: {
+    id: string;
     village_english: string;
     village_farsi: string;
     village_pashto: string;

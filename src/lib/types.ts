@@ -318,6 +318,11 @@ export interface NgoListPaginationData {
   currentPage: number;
   totalItems: number;
 }
+export interface BasicModel {
+  id: string;
+  name: string;
+  created_at: string;
+}
 export interface FileType {
   id: string;
   path: string;

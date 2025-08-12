@@ -99,9 +99,10 @@ const formatTime12h = (time24: string): string => {
 export interface EditScheduleTabProps {
   schedule: Schedule;
   setSchedule: Dispatch<any>;
+  add: boolean;
 }
 const EditScheduleTab = (props: EditScheduleTabProps) => {
-  const { schedule, setSchedule } = props;
+  const { schedule, setSchedule, add } = props;
   const [loading, setLoading] = useState(false);
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -181,7 +182,6 @@ const EditScheduleTab = (props: EditScheduleTabProps) => {
       projects: projects,
     }));
   };
-  console.log(schedule);
   const prepareSchedule = async () => {
     try {
       if (loading) return;
@@ -516,10 +516,17 @@ const EditScheduleTab = (props: EditScheduleTabProps) => {
         formatTime={formatTime}
         onAssign={assignPersonToSlot}
       />
-      <PrimaryButton onClick={store} className={`shadow-lg mx-auto mt-16`}>
-        <ButtonSpinner loading={loading}>{t("save")}</ButtonSpinner>
-        <Save className="size-[22px]" />
-      </PrimaryButton>
+      {add ? (
+        <PrimaryButton onClick={store} className={`shadow-lg mx-auto mt-16`}>
+          <ButtonSpinner loading={loading}>{t("save")}</ButtonSpinner>
+          <Save className="size-[22px]" />
+        </PrimaryButton>
+      ) : (
+        <PrimaryButton onClick={store} className={`shadow-lg mx-auto mt-16`}>
+          <ButtonSpinner loading={loading}>{t("update")}</ButtonSpinner>
+          <Save className="size-[22px]" />
+        </PrimaryButton>
+      )}
     </div>
   );
 };

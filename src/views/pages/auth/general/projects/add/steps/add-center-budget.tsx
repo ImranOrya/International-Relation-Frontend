@@ -7,7 +7,7 @@ import { DateObject } from "react-multi-date-picker";
 import APICombobox from "@/components/custom-ui/combobox/APICombobox";
 import CenterBudgetTable from "./parts/center-budget-table";
 import { useScrollToElement } from "@/hooks/use-scroll-to-element";
-import { toast } from "@/components/ui/use-toast";
+import { isStartDateBigger } from "@/lib/utils";
 
 export default function AddCenterBudget() {
   const { userData, setUserData, error } = useContext(StepperContext);
@@ -19,21 +19,7 @@ export default function AddCenterBudget() {
     const { name, value } = e.target;
     setUserData((prev: any) => ({ ...prev, [name]: value }));
   };
-  const isStartDateBigger = (
-    startDate: DateObject,
-    endDate: DateObject,
-    message: string
-  ) => {
-    if (startDate && endDate && startDate > endDate) {
-      console.log("start date is bigger");
-      toast({
-        toastType: "ERROR",
-        description: message,
-      });
-      return true;
-    }
-    return false;
-  };
+
   return (
     <div className="flex flex-col lg:grid lg:grid-cols-2 xl:grid-cols-3 gap-x-4 xl:gap-x-12 lg:items-baseline mt-4 gap-y-3 w-full lg:w-full">
       <CustomDatePicker

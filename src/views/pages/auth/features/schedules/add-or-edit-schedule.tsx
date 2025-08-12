@@ -18,6 +18,10 @@ import axiosClient from "@/lib/axois-client";
 import { useDatasource } from "@/hooks/use-datasource";
 import { Project, ScheduleItem } from "@/database/tables";
 import { FileType } from "@/lib/types";
+import PrimaryButton from "@/components/custom-ui/button/PrimaryButton";
+import { PlaneTakeoff, SquareX } from "lucide-react";
+import NastranModel from "@/components/custom-ui/model/NastranModel";
+import TakePresentation from "@/views/pages/auth/features/schedules/tabs/parts/take-presentation";
 
 export type Schedule = {
   date: DateObject;
@@ -52,17 +56,20 @@ export default function AddOrEditSchedule() {
   const navigate = useNavigate();
   const handleGoHome = () => navigate("/dashboard", { replace: true });
   const handleGoBack = () => navigate("/schedules", { replace: true });
-
+  const paramData = useMemo(
+    () =>
+      new DateObject({
+        date: fullDate,
+        calendar: state.systemLanguage.calendar,
+        locale: state.systemLanguage.local,
+        format: "YYYY/MM/DD", // important for parsing correctly
+      }),
+    []
+  );
   const loadList = async () => {
-    const date = new DateObject({
-      date: fullDate,
-      calendar: state.systemLanguage.calendar,
-      locale: state.systemLanguage.local,
-      format: "YYYY/MM/DD", // important for parsing correctly
-    });
-    if (date.isValid) {
+    if (paramData.isValid) {
       return {
-        date: date,
+        date: paramData,
         presentation_count: 10,
         projects: [],
         special_projects: [],
@@ -102,10 +109,11 @@ export default function AddOrEditSchedule() {
           selected: true,
         };
         projects.push(proj);
-        special_projects.push({
-          project: { id: proj.id, name: proj.name },
-          attachment: proj?.attachment,
-        });
+        if (proj?.attachment)
+          special_projects.push({
+            project: { id: proj.id, name: proj.name },
+            attachment: proj?.attachment,
+          });
       }
       return {
         date: date,
@@ -144,6 +152,10 @@ export default function AddOrEditSchedule() {
       "data-[state=active]:border-tertiary border-b-[2px] border-transparent data-[state=active]:border-b-[2px] h-full rounded-none",
     []
   );
+  const cancel = () => {
+    try {
+    } catch (error: any) {}
+  };
   return (
     <div className="px-2 pt-2 pb-12 flex flex-col gap-y-[2px] relative select-none rtl:text-2xl-rtl ltr:text-xl-ltr">
       <Breadcrumb>
@@ -154,10 +166,36 @@ export default function AddOrEditSchedule() {
         <BreadcrumbItem>{fullDate}</BreadcrumbItem>
       </Breadcrumb>
       <Card className="w-full mt-2 self-center [backdrop-filter:blur(20px)] bg-card">
-        <CardHeader className="text-start sticky top-0 rounded-t-lg border-b bg-card pb-2 z-10">
-          <CardTitle className="rtl:text-4xl-rtl mb-4 ltr:text-3xl-ltr text-tertiary">
+        <CardHeader className="text-start sticky top-0 rounded-t-lg border-b bg-card z-10 flex flex-row items-center justify-between">
+          <CardTitle className="rtl:text-4xl-rtl ltr:text-3xl-ltr text-tertiary">
             {t("schedule")}
           </CardTitle>
+          <div className="flex gap-x-4">
+            <NastranModel
+              className="bg-card"
+              size="full"
+              isDismissable={false}
+              button={
+                <PrimaryButton
+                  onClick={cancel}
+                  className="items-center border bg-primary/5 hover:shadow-none shadow-none text-primary hover:text-primary hover:bg-primary/10"
+                >
+                  {t("take_presentation")}
+                  <PlaneTakeoff />
+                </PrimaryButton>
+              }
+              showDialog={async () => true}
+            >
+              <TakePresentation scheduleItems={schedule.scheduleItems} />
+            </NastranModel>
+            <PrimaryButton
+              onClick={cancel}
+              className="items-center border bg-red-400/20 hover:shadow-none shadow-none text-primary hover:text-primary hover:bg-red-400/70"
+            >
+              {t("cancel")}
+              <SquareX />
+            </PrimaryButton>
+          </div>
         </CardHeader>
         <CardContent className="flex flex-col gap-y-4 p-0 pb-4 text-start">
           <Tabs
@@ -219,11 +257,16 @@ export default function AddOrEditSchedule() {
             <TabsContent value={"select"} className="p-4">
               <CustomProjectSelect
                 schedule={schedule}
+                                add={paramData.isValid}
                 setSchedule={setSchedule}
               />
             </TabsContent>
             <TabsContent value={"detail"} className="p-4">
-              <EditScheduleTab schedule={schedule} setSchedule={setSchedule} />
+              <EditScheduleTab
+                add={paramData.isValid}
+                schedule={schedule}
+                setSchedule={setSchedule}
+              />
             </TabsContent>
           </Tabs>
         </CardContent>

@@ -81,10 +81,7 @@ export default function EditNgoProfileInformation(
     formData.append("id", user.id);
     formData.append("contents", JSON.stringify(ngoData));
     try {
-      const response = await axiosClient.post(
-        "ngo/profile/info/update",
-        formData
-      );
+      const response = await axiosClient.post("ngos/profile", formData);
       if (response.status == 200) {
         const fileds_update = response.data.fileds_update;
         setNgo({ ...user, ...fileds_update });

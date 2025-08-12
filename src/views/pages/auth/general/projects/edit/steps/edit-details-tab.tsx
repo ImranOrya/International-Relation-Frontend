@@ -23,10 +23,10 @@ import MultiTabInput from "@/components/custom-ui/input/mult-tab/MultiTabInput";
 import MultiTabTextarea from "@/components/custom-ui/input/mult-tab/MultiTabTextarea";
 import { ProjectDetailType } from "@/lib/types";
 
-interface EditInformationTabProps {
+interface EditDetailsTabProps {
   hasEdit: boolean;
 }
-export default function EditInformationTab(props: EditInformationTabProps) {
+export default function EditDetailsTab(props: EditDetailsTabProps) {
   const { hasEdit } = props;
   const { t } = useTranslation();
   let { id } = useParams();
@@ -111,7 +111,7 @@ export default function EditInformationTab(props: EditInformationTabProps) {
     }
     // 2. Store
     try {
-      const response = await axiosClient.post("projects/details", {
+      const response = await axiosClient.put("projects/details", {
         id: id,
         project_name_english: projectDetail?.project_name_english,
         project_name_farsi: projectDetail?.project_name_farsi,
@@ -623,7 +623,7 @@ export default function EditInformationTab(props: EditInformationTabProps) {
           projectDetail &&
           hasEdit && (
             <PrimaryButton onClick={saveData} className={`shadow-lg`}>
-              <ButtonSpinner loading={loading}>{t("save")}</ButtonSpinner>
+              <ButtonSpinner loading={loading}>{t("update")}</ButtonSpinner>
             </PrimaryButton>
           )
         )}

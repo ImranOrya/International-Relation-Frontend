@@ -41,15 +41,14 @@ export default function NgoProfileHeader(props: NgoProfileHeaderProps) {
     const formData = new FormData();
     formData.append("profile", file);
     try {
-      const response = await axiosClient.post(
-        "ngo/profile/picture-update",
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
+      const response = await axiosClient.post("ngos/picture", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+        params: {
+          _method: "PUT", // Laravel treats this POST as a PUT
+        },
+      });
       if (response.status == 200) {
         // Change logged in user data
         await setNgo({

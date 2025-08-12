@@ -15,8 +15,16 @@ import { CenterBudget } from "@/database/tables";
 import CenterBudgetHeader from "./center-budget-header";
 import { budgetFailed } from "@/lib/utils";
 
-export default function CenterBudgetTable() {
-  const { userData, setUserData } = useContext(StepperContext);
+export interface CenterBudgetTableProps {
+  userData?: any;
+  setUserData?: any;
+}
+export default function CenterBudgetTable(props: CenterBudgetTableProps) {
+  // const { userData, setUserData } = useContext(StepperContext);
+  const context = useContext(StepperContext);
+
+  const userData = props.userData ?? context.userData;
+  const setUserData = props.setUserData ?? context.setUserData;
   const [onEdit, setOnEdit] = useState<CenterBudget | undefined>();
   const { t } = useTranslation();
 

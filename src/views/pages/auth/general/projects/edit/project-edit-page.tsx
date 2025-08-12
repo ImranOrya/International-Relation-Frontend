@@ -16,7 +16,6 @@ import {
 } from "lucide-react";
 import Shimmer from "@/components/custom-ui/shimmer/Shimmer";
 import { PermissionEnum, StatusEnum } from "@/lib/constants";
-import EditInformationTab from "./steps/edit-information-tab";
 import NastranModel from "@/components/custom-ui/model/NastranModel";
 import { UserPermission } from "@/database/tables";
 import { useGeneralAuthState } from "@/context/AuthContextProvider";
@@ -28,10 +27,11 @@ import {
   BreadcrumbSeparator,
 } from "@/components/custom-ui/Breadcrumb/Breadcrumb";
 import ProjectEditHeader from "./project-edit-header";
-import UploadMouDailog from "./parts/upload-mou-Dailog";
 import EditCenterBudgetTab from "./steps/edit-center-budget-tab";
 import EditOrganizationStructureTab from "./steps/edit-organization-structure-tab";
 import EditChecklistTab from "./steps/edit-checklist-tab";
+import EditDetailsTab from "@/views/pages/auth/general/projects/edit/steps/edit-details-tab";
+import UploadMouDailog from "@/views/pages/auth/general/projects/edit/parts/upload-mou-dailog";
 
 export default function ProjectEditPage() {
   const { user } = useGeneralAuthState();
@@ -80,6 +80,14 @@ export default function ProjectEditPage() {
   const per: UserPermission = user?.permissions.get(
     PermissionEnum.projects.name
   ) as UserPermission;
+  const hasEdit =
+    per.edit &&
+    (userData?.status_id != StatusEnum.scheduled ||
+      userData?.status_id == StatusEnum.has_comment);
+  const hasRemove =
+    per.delete &&
+    (userData?.status_id != StatusEnum.scheduled ||
+      userData?.status_id == StatusEnum.has_comment);
   const tableList = useMemo(
     () =>
       Array.from(per.sub).map(([key, _subPermission], index: number) => {
@@ -185,8 +193,8 @@ export default function ProjectEditPage() {
                 failed={failed}
                 userData={userData}
                 setUserData={setUserData}
-                hasEdit={true}
-                hasRemove={true}
+                hasEdit={hasEdit}
+                hasRemove={hasRemove}
               />
               {tableList}
 
@@ -253,25 +261,19 @@ export default function ProjectEditPage() {
               className="flex-1 m-0"
               value={PermissionEnum.projects.sub.detail.toString()}
             >
-              <EditInformationTab
-                hasEdit={userData.status_id == StatusEnum.has_comment}
-              />
+              <EditDetailsTab hasEdit={hasEdit} />
             </TabsContent>
             <TabsContent
               className="flex-1 m-0"
               value={PermissionEnum.projects.sub.center_budget.toString()}
             >
-              <EditCenterBudgetTab
-                hasEdit={userData.status_id == StatusEnum.has_comment}
-              />
+              <EditCenterBudgetTab hasEdit={hasEdit} />
             </TabsContent>
             <TabsContent
               className="flex-1 m-0"
               value={PermissionEnum.projects.sub.organ_structure.toString()}
             >
-              <EditOrganizationStructureTab
-                hasEdit={userData.status_id == StatusEnum.has_comment}
-              />
+              <EditOrganizationStructureTab hasEdit={hasEdit} />
             </TabsContent>
             <TabsContent
               className="flex-1 m-0"

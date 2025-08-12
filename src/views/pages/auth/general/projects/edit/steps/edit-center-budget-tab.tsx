@@ -17,32 +17,22 @@ import NastranSpinner from "@/components/custom-ui/spinner/NastranSpinner";
 import axiosClient from "@/lib/axois-client";
 import { setServerError, validate } from "@/validation/validation";
 import ButtonSpinner from "@/components/custom-ui/spinner/ButtonSpinner";
-import { Country, District, NgoType, Province } from "@/database/tables";
 import { useParams } from "react-router";
-import SingleTab from "@/components/custom-ui/input/mult-tab/parts/SingleTab";
-import BorderContainer from "@/components/custom-ui/container/BorderContainer";
 import CustomDatePicker from "@/components/custom-ui/DatePicker/CustomDatePicker";
 import { DateObject } from "react-multi-date-picker";
 import { ValidateItem } from "@/validation/types";
-import MultiTabInput from "@/components/custom-ui/input/mult-tab/MultiTabInput";
-import { isString } from "@/lib/utils";
-interface EditNgoInformation {
-  registration_no: string;
-  name_english: string | undefined;
-  name_pashto: string;
-  name_farsi: string;
-  area_english: string;
-  area_pashto: string;
-  area_farsi: string;
-  abbr: string;
-  type: NgoType;
-  contact: string;
-  email: string;
-  moe_registration_no: string;
-  country: Country;
-  province: Province;
-  district: District;
-  establishment_date: DateObject;
+import { isStartDateBigger, isString } from "@/lib/utils";
+import CenterBudgetTable from "@/views/pages/auth/general/projects/add/steps/parts/center-budget-table";
+import { BasicModel } from "@/lib/types";
+import { CenterBudget } from "@/database/tables";
+interface EditProjectInformation {
+  start_date: DateObject;
+  end_date: DateObject;
+  donor: BasicModel;
+  donor_register_no: string;
+  currency: BasicModel;
+  budget: number;
+  centers_list: CenterBudget[];
   optional_lang: string;
 }
 interface EditCenterBudgetTabProps {
@@ -55,14 +45,13 @@ export default function EditCenterBudgetTab(props: EditCenterBudgetTabProps) {
   const [loading, setLoading] = useState(true);
   const [failed, setFailed] = useState(false);
   const [error, setError] = useState<Map<string, string>>(new Map());
-  const [ngoData, setNgoData] = useState<EditNgoInformation>();
+  const [userData, setUserData] = useState<EditProjectInformation | any>();
 
   const loadInformation = async () => {
     try {
-      const response = await axiosClient.get(`ngo/details/${id}`);
+      const response = await axiosClient.get(`projects/budget/${id}`);
       if (response.status == 200) {
-        const ngo = response.data.ngo;
-        if (ngo) setNgoData(ngo);
+        setUserData(response.data);
       }
     } catch (error: any) {
       toast({
@@ -85,42 +74,71 @@ export default function EditCenterBudgetTab(props: EditCenterBudgetTabProps) {
       return;
     }
     setLoading(true);
-    // 1. Validate data changes
     // 2. Validate form
     const compulsoryFields: ValidateItem[] = [
-      { name: "name_english", rules: ["required", "max:128", "min:5"] },
-      { name: "name_farsi", rules: ["required", "max:128", "min:5"] },
-      { name: "name_pashto", rules: ["required", "max:128", "min:5"] },
-      { name: "abbr", rules: ["required"] },
-      { name: "type", rules: ["required"] },
-      { name: "contact", rules: ["required"] },
-      { name: "email", rules: ["required"] },
-      { name: "moe_registration_no", rules: ["required"] },
-      { name: "country", rules: ["required"] },
-      { name: "establishment_date", rules: ["required"] },
-      { name: "province", rules: ["required"] },
-      { name: "district", rules: ["required"] },
-      { name: "area_english", rules: ["required", "max:128", "min:5"] },
-      { name: "area_pashto", rules: ["required", "max:128", "min:5"] },
-      { name: "area_farsi", rules: ["required", "max:128", "min:5"] },
+      {
+        name: "start_date",
+        rules: ["required"],
+      },
+      {
+        name: "end_date",
+        rules: ["required"],
+      },
+      {
+        name: "donor",
+        rules: ["required"],
+      },
+      {
+        name: "donor_register_no",
+        rules: ["required"],
+      },
+      {
+        name: "currency",
+        rules: ["required"],
+      },
+      {
+        name: "budget",
+        rules: ["required"],
+      },
+      {
+        name: "centers_list",
+        rules: [
+          (userData: any) => {
+            if (Array.isArray(userData?.centers_list)) {
+              if (userData.centers_list.length >= 1) return false;
+            }
+            toast({
+              toastType: "ERROR",
+              title: t("error"),
+              description: t("must_be_one_center"),
+            });
+            return true;
+          },
+        ],
+      },
     ];
-    const passed = await validate(compulsoryFields, ngoData, setError);
+    const passed = await validate(compulsoryFields, userData, setError);
     if (!passed) {
       setLoading(false);
       return;
     }
+
     const content = {
-      ...ngoData, // shallow copy of the userData object
-      establishment_date: !isString(ngoData!.establishment_date)
-        ? ngoData!.establishment_date?.toDate()?.toISOString()
-        : ngoData!.establishment_date,
+      ...userData, // shallow copy of the userData object
+      centers_list: userData.centers_list,
+      start_date: !isString(userData?.start_date)
+        ? userData?.start_date?.toDate()?.toISOString()
+        : userData?.start_date,
+      end_date: !isString(userData?.end_date)
+        ? userData?.end_date?.toDate()?.toISOString()
+        : userData?.end_date,
     };
     // 2. Store
     const formData = new FormData();
     formData.append("id", id);
-    formData.append("contents", JSON.stringify(content));
+    formData.append("content", JSON.stringify(content));
     try {
-      const response = await axiosClient.post("ngo/update-info", formData);
+      const response = await axiosClient.put("projects/budget", formData);
       if (response.status == 200) {
         toast({
           toastType: "SUCCESS",
@@ -140,7 +158,10 @@ export default function EditCenterBudgetTab(props: EditCenterBudgetTabProps) {
       setLoading(false);
     }
   };
-
+  const handleChange = (e: any) => {
+    const { name, value } = e.target;
+    setUserData((prev: any) => ({ ...prev, [name]: value }));
+  };
   return (
     <Card>
       <CardHeader className="space-y-0">
@@ -154,247 +175,130 @@ export default function EditCenterBudgetTab(props: EditCenterBudgetTabProps) {
       <CardContent>
         {failed ? (
           <h1 className="rtl:text-2xl-rtl">{t("u_are_not_authzed!")}</h1>
-        ) : ngoData === undefined ? (
+        ) : userData === undefined ? (
           <NastranSpinner />
         ) : (
-          <div className="grid gap-x-4 gap-y-6 w-full xl:w-1/2">
-            <BorderContainer
-              title={t("ngo_name")}
-              required={true}
-              parentClassName="p-t-4 pb-0 px-0"
-              className="grid grid-cols-1 gap-y-3"
-            >
-              <MultiTabInput
-                readOnly={!hasEdit}
-                optionalKey={"optional_lang"}
-                onTabChanged={(key: string, tabName: string) => {
-                  setNgoData({
-                    ...ngoData,
-                    [key]: tabName,
-                    optional_lang: tabName,
-                  });
-                }}
-                onChanged={(value: string, name: string) => {
-                  setNgoData({
-                    ...ngoData,
-                    [name]: value,
-                  });
-                }}
-                name="name"
-                highlightColor="bg-tertiary"
-                userData={ngoData}
-                errorData={error}
-                placeholder={t("content")}
-                className="rtl:text-xl-rtl rounded-none border-t border-x-0 border-b-0"
-                tabsClassName="gap-x-5 px-3"
-              >
-                <SingleTab>english</SingleTab>
-                <SingleTab>farsi</SingleTab>
-                <SingleTab>pashto</SingleTab>
-              </MultiTabInput>
-            </BorderContainer>
-
-            <CustomInput
-              readOnly={!hasEdit}
-              required={true}
+          <div className="flex flex-col lg:grid lg:grid-cols-2 xl:grid-cols-3 gap-x-4 xl:gap-x-12 lg:items-baseline mt-4 gap-y-3 w-full lg:w-full">
+            <CustomDatePicker
+              placeholder={t("select_a_date")}
+              lable={t("start_date")}
               requiredHint={`* ${t("required")}`}
-              size_="sm"
-              lable={t("abbr")}
-              name="abbr"
-              defaultValue={ngoData["abbr"]}
-              placeholder={t("abbr_english")}
-              type="text"
-              className="uppercase"
-              errorMessage={error.get("abbr")}
-              onBlur={(e: any) => {
-                const { name, value } = e.target;
-                setNgoData({ ...ngoData, [name]: value });
+              required={true}
+              value={userData.start_date}
+              dateOnComplete={(date: DateObject) => {
+                if (
+                  isStartDateBigger(
+                    date,
+                    userData?.end_date,
+                    t("end_date_must_bigger")
+                  )
+                )
+                  return true;
+                setUserData((prev: any) => ({
+                  ...prev,
+                  start_date: date,
+                }));
               }}
+              className="py-3 w-full"
+              errorMessage={error.get("start_date")}
+            />
+            <CustomDatePicker
+              placeholder={t("select_a_date")}
+              lable={t("end_date")}
+              requiredHint={`* ${t("required")}`}
+              required={true}
+              value={userData.end_date}
+              dateOnComplete={(date: DateObject) => {
+                if (
+                  isStartDateBigger(
+                    userData?.start_date,
+                    date,
+                    t("end_date_must_bigger")
+                  )
+                )
+                  return true;
+
+                setUserData((prev: any) => ({
+                  ...prev,
+                  end_date: date,
+                }));
+              }}
+              className="py-3 w-full"
+              errorMessage={error.get("end_date")}
             />
             <APICombobox
               placeholderText={t("search_item")}
               errorText={t("no_item")}
               onSelect={(selection: any) =>
-                setNgoData({ ...ngoData, ["type"]: selection })
+                setUserData((prev: any) => ({
+                  ...prev,
+                  ["donor"]: selection,
+                }))
               }
-              lable={t("type")}
+              lable={t("donor")}
               required={true}
               requiredHint={`* ${t("required")}`}
-              selectedItem={ngoData["type"]?.name}
+              selectedItem={userData["donor"]?.name}
               placeHolder={t("select_a")}
-              errorMessage={error.get("type")}
-              apiUrl={"ngo-types"}
+              errorMessage={error.get("donor")}
+              apiUrl={"donors/names/list"}
               mode="single"
-              readonly={!hasEdit}
+              cacheData={false}
             />
             <CustomInput
-              size_="sm"
-              dir="ltr"
               required={true}
               requiredHint={`* ${t("required")}`}
-              className="rtl:text-end"
-              lable={t("contact")}
-              placeholder={t("enter_ur_pho_num")}
-              defaultValue={ngoData["contact"]}
+              size_="sm"
+              lable={t("donor_register_no")}
+              name="donor_register_no"
+              defaultValue={userData["donor_register_no"]}
+              placeholder={t("enter")}
               type="text"
-              name="contact"
-              errorMessage={error.get("contact")}
-              onChange={(e: any) => {
-                const { name, value } = e.target;
-                setNgoData({ ...ngoData, [name]: value });
-              }}
-              readOnly={!hasEdit}
+              errorMessage={error.get("donor_register_no")}
+              onBlur={handleChange}
             />
-            <CustomInput
-              size_="sm"
-              name="email"
+            <APICombobox
+              placeholderText={t("search_item")}
+              errorText={t("no_item")}
+              onSelect={(selection: any) =>
+                setUserData((prev: any) => ({
+                  ...prev,
+                  ["currency"]: selection,
+                }))
+              }
+              lable={t("currency")}
               required={true}
               requiredHint={`* ${t("required")}`}
-              lable={t("email")}
-              defaultValue={ngoData["email"]}
-              placeholder={t("enter_your_email")}
-              type="email"
-              errorMessage={error.get("email")}
-              onChange={(e: any) => {
-                const { name, value } = e.target;
-                setNgoData({ ...ngoData, [name]: value });
-              }}
-              dir="ltr"
-              className="rtl:text-right"
-              readOnly={!hasEdit}
+              selectedItem={userData["currency"]?.name}
+              placeHolder={t("select_a")}
+              errorMessage={error.get("currency")}
+              apiUrl={"currencies"}
+              mode="single"
+              cacheData={false}
             />
-
             <CustomInput
-              size_="sm"
-              name="moe_registration_no"
+              endContent={
+                <h1 className="flex justify-center items-center rounded border border-primary/50 size-[18px]">
+                  {userData?.currency?.symbol}
+                </h1>
+              }
               required={true}
               requiredHint={`* ${t("required")}`}
-              lable={t("moe_registration_no")}
-              defaultValue={ngoData["moe_registration_no"]}
-              placeholder={t("enter_your_email")}
-              type="moe_registration_no"
-              errorMessage={error.get("moe_registration_no")}
-              onChange={(e: any) => {
-                const { name, value } = e.target;
-                setNgoData({ ...ngoData, [name]: value });
-              }}
-              dir="ltr"
-              className="rtl:text-right"
-              readOnly={!hasEdit}
+              size_="sm"
+              lable={t("budget")}
+              name="budget"
+              value={userData["budget"] || ""}
+              placeholder={t("enter")}
+              type="text"
+              errorMessage={error.get("budget")}
+              onChange={handleChange}
             />
-
-            <BorderContainer
-              title={t("place_of_establishment")}
-              required={true}
-              parentClassName="mt-3"
-              className="flex flex-col items-stretch gap-y-3"
-            >
-              <APICombobox
-                placeholderText={t("search_item")}
-                errorText={t("no_item")}
-                onSelect={(selection: any) =>
-                  setNgoData({
-                    ...ngoData,
-                    ["country"]: selection,
-                  })
-                }
-                lable={t("country")}
-                required={true}
-                selectedItem={ngoData["country"]?.name}
-                placeHolder={t("select_a")}
-                errorMessage={error.get("country")}
-                apiUrl={"countries"}
-                mode="single"
-                readonly={!hasEdit}
+            {userData?.budget && (
+              <CenterBudgetTable
+                userData={userData}
+                setUserData={setUserData}
               />
-              <CustomDatePicker
-                placeholder={t("select_a_date")}
-                lable={t("establishment_date")}
-                requiredHint={`* ${t("required")}`}
-                required={true}
-                value={ngoData.establishment_date}
-                dateOnComplete={(date: DateObject) => {
-                  setNgoData({ ...ngoData, establishment_date: date });
-                }}
-                className="py-3 w-full"
-                errorMessage={error.get("establishment_date")}
-                readonly={!hasEdit}
-              />
-            </BorderContainer>
-
-            <BorderContainer
-              title={t("head_office_add")}
-              required={true}
-              parentClassName="mt-3"
-              className="flex flex-col items-start gap-y-3"
-            >
-              <APICombobox
-                placeholderText={t("search_item")}
-                errorText={t("no_item")}
-                onSelect={(selection: any) =>
-                  setNgoData({ ...ngoData, ["province"]: selection })
-                }
-                lable={t("province")}
-                required={true}
-                selectedItem={ngoData["province"]?.name}
-                placeHolder={t("select_a")}
-                errorMessage={error.get("province")}
-                apiUrl={"provinces/" + 1}
-                mode="single"
-                readonly={!hasEdit}
-              />
-              {ngoData.province && (
-                <APICombobox
-                  placeholderText={t("search_item")}
-                  errorText={t("no_item")}
-                  onSelect={(selection: any) =>
-                    setNgoData({ ...ngoData, ["district"]: selection })
-                  }
-                  lable={t("district")}
-                  required={true}
-                  selectedItem={ngoData["district"]?.name}
-                  placeHolder={t("select_a")}
-                  errorMessage={error.get("district")}
-                  apiUrl={"districts/" + ngoData?.province?.id}
-                  mode="single"
-                  key={ngoData?.province?.id}
-                  readonly={!hasEdit}
-                />
-              )}
-
-              {ngoData.district && (
-                <MultiTabInput
-                  title={t("area")}
-                  parentClassName="w-full"
-                  optionalKey={"optional_lang"}
-                  onTabChanged={(key: string, tabName: string) => {
-                    setNgoData({
-                      ...ngoData,
-                      [key]: tabName,
-                      optional_lang: tabName,
-                    });
-                  }}
-                  onChanged={(value: string, name: string) => {
-                    setNgoData({
-                      ...ngoData,
-                      [name]: value,
-                    });
-                  }}
-                  name="area"
-                  highlightColor="bg-tertiary"
-                  userData={ngoData}
-                  errorData={error}
-                  placeholder={t("content")}
-                  className="rtl:text-xl-rtl"
-                  tabsClassName="gap-x-5"
-                  readOnly={!hasEdit}
-                >
-                  <SingleTab>english</SingleTab>
-                  <SingleTab>farsi</SingleTab>
-                  <SingleTab>pashto</SingleTab>
-                </MultiTabInput>
-              )}
-            </BorderContainer>
+            )}
           </div>
         )}
       </CardContent>
@@ -408,10 +312,10 @@ export default function EditCenterBudgetTab(props: EditCenterBudgetTabProps) {
             <RefreshCcw className="ltr:ml-2 rtl:mr-2" />
           </PrimaryButton>
         ) : (
-          ngoData &&
+          userData &&
           hasEdit && (
             <PrimaryButton onClick={saveData} className={`shadow-lg`}>
-              <ButtonSpinner loading={loading}>{t("save")}</ButtonSpinner>
+              <ButtonSpinner loading={loading}>{t("update")}</ButtonSpinner>
             </PrimaryButton>
           )
         )}

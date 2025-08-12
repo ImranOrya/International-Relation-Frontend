@@ -17,17 +17,18 @@ import { FileType } from "@/lib/types";
 import { generateUUID, getConfiguration, validateFile } from "@/lib/utils";
 import { validate } from "@/validation/validation";
 import { Schedule } from "@/views/pages/auth/features/schedules/add-or-edit-schedule";
-import { ChevronsDown, RefreshCcw } from "lucide-react";
+import { ChevronsDown, RefreshCcw, SquarePen } from "lucide-react";
 import { Dispatch, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 export interface CustomProjectSelectProps {
   schedule: Schedule;
   setSchedule: Dispatch<any>;
+    add: boolean;
 }
 
 export function CustomProjectSelect(props: CustomProjectSelectProps) {
-  const { schedule, setSchedule } = props;
+  const { schedule, setSchedule ,add} = props;
   const { t } = useTranslation();
   const [error, setError] = useState<Map<string, string>>(new Map());
 
@@ -137,6 +138,29 @@ export function CustomProjectSelect(props: CustomProjectSelectProps) {
     setUserData({});
   };
 
+  const onEditClicked = (item: {
+    project: {
+      id: number;
+      name: string;
+    };
+    attachment: FileType;
+  }) => {
+    const deepCopy = JSON.parse(JSON.stringify(item));
+    setUserData((prev: any) => ({
+      ...prev,
+      project: deepCopy.project,
+      document: deepCopy.attachment,
+    }));
+    schedule.special_projects;
+    setSchedule((prev: any) => {
+      const updateSpecialProjects = prev.special_projects.filter(
+        (sub: any) => sub.project.id != item.project.id
+      );
+
+      return { ...prev, special_projects: updateSpecialProjects };
+    });
+  };
+
   return (
     <div className="flex flex-col gap-x-4 gap-y-6 w-full">
       {failed ? (
@@ -231,7 +255,7 @@ export function CustomProjectSelect(props: CustomProjectSelectProps) {
             )}
           </div>
           <PrimaryButton
-            onClick={addItem}
+            onClick={add ? addItem:editItem}
             className="rtl:text-lg-rtl font-semibold ltr:text-md-ltr mx-auto col-span-full mt-8"
           >
             {t("add_to_list")}
@@ -244,6 +268,7 @@ export function CustomProjectSelect(props: CustomProjectSelectProps) {
                 <TableHead className="text-start">
                   {t("project_name")}
                 </TableHead>
+                <TableHead className="text-start">{t("action")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody className="rtl:text-xl-rtl ltr:text-2xl-ltr">
@@ -255,6 +280,12 @@ export function CustomProjectSelect(props: CustomProjectSelectProps) {
                     </TableCell>
                     <TableCell className="text-start truncate">
                       {item.project?.name}
+                    </TableCell>
+                    <TableCell className="text-start truncate">
+                      <SquarePen
+                        onClick={() => onEditClicked(item)}
+                        className=" text-green-400 size-[20px] cursor-pointer"
+                      />
                     </TableCell>
                   </TableRow>
                 ))}
