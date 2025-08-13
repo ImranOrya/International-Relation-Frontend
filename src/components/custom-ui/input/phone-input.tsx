@@ -11,7 +11,7 @@ import { useTranslation } from "react-i18next";
 
 // Country data with min/max length
 type CountryCode = {
-  code: string; // ISO 3166-1 alpha-2
+  code: string;
   label: string;
   dialCode: string;
   minLength: number;

@@ -40,6 +40,7 @@ const MultiTabTextarea = React.forwardRef<
     onChanged,
     highlightColor,
     placeholder,
+    disabled,
     title,
     ...rest
   } = props;
@@ -88,8 +89,10 @@ const MultiTabTextarea = React.forwardRef<
           }
 
           return React.cloneElement(comp, {
-            className: classNameOne,
-            onClick: () => tabChanged(levelOneChildren), // Pass the tab value (children)
+            className: `${classNameOne} ${disabled && " cursor-not-allowed"}`,
+            onClick: () => {
+              if (!disabled) tabChanged(levelOneChildren);
+            }, // Pass the tab value (children)
           });
         } else if (child.type === OptionalTab) {
           if (Array.isArray(levelOneChildren)) {
@@ -124,7 +127,9 @@ const MultiTabTextarea = React.forwardRef<
                     <>
                       {React.cloneElement(childInner, {
                         className: classNameOne,
-                        onClick: () => tabChanged(levelTwoChildren), // Pass the tab value (children)
+                        onClick: () => {
+                          if (!disabled) tabChanged(levelTwoChildren);
+                        }, // Pass the tab value (children)
                       })}
                       {index % 2 == 0 && (
                         <div className="font-semibold text-[18px] text-primary/80">
@@ -155,6 +160,7 @@ const MultiTabTextarea = React.forwardRef<
       {/* Body */}
       <Textarea
         {...rest}
+        disabled={disabled}
         className={cn(
           `mt-2 focus-visible:ring-0 bg-card dark:bg-card-secondary focus-visible:border-primary/30 focus-visible:ring-offset-0 ${
             errorMessages.length > 0 && "border-red-400 !border-b"
