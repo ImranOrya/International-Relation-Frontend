@@ -6,6 +6,7 @@ import {
   BreadcrumbItem,
   BreadcrumbSeparator,
 } from "@/components/custom-ui/Breadcrumb/Breadcrumb";
+import PhoneInput from "@/components/custom-ui/input/phone-input";
 
 export default function SettingsPage() {
   const { t } = useTranslation();
@@ -18,6 +19,7 @@ export default function SettingsPage() {
         <BreadcrumbItem>{t("settings")}</BreadcrumbItem>
       </Breadcrumb>
       <LanguageTab />
+      <PhoneInput />
     </>
   );
 }
