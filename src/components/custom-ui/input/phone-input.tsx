@@ -26,21 +26,6 @@ const countryCodes: CountryCode[] = [
     minLength: 1,
     maxLength: 9,
   },
-  {
-    code: "US",
-    label: "🇺🇸 United States",
-    dialCode: "+1",
-    minLength: 1,
-    maxLength: 10,
-  },
-  {
-    code: "IN",
-    label: "🇮🇳 India",
-    dialCode: "+91",
-    minLength: 1,
-    maxLength: 10,
-  },
-  { code: "GB", label: "🇬🇧 UK", dialCode: "+44", minLength: 1, maxLength: 11 },
   // Add more countries as needed
 ];
 

@@ -1,352 +1,226 @@
-import CustomInput from "@/components/custom-ui/input/CustomInput";
 import { useEffect, useState } from "react";
 import { toast } from "@/components/ui/use-toast";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
 import { useTranslation } from "react-i18next";
-import NastranSpinner from "@/components/custom-ui/spinner/NastranSpinner";
 import axiosClient from "@/lib/axois-client";
 import { useParams } from "react-router";
-import SingleTab from "@/components/custom-ui/input/mult-tab/parts/SingleTab";
-import BorderContainer from "@/components/custom-ui/container/BorderContainer";
-import MultiTabInput from "@/components/custom-ui/input/mult-tab/MultiTabInput";
-import { ProjectOrganizationStructureType } from "@/lib/types";
-import APICombobox from "@/components/custom-ui/combobox/APICombobox";
-import CustomCheckbox from "@/components/custom-ui/checkbox/CustomCheckbox";
 import PrimaryButton from "@/components/custom-ui/button/PrimaryButton";
 import ButtonSpinner from "@/components/custom-ui/spinner/ButtonSpinner";
-import { ValidateItem } from "@/validation/types";
-import { setServerError, validate } from "@/validation/validation";
 import { RefreshCcw } from "lucide-react";
+import { useGlobalState } from "@/context/GlobalStateContext";
+import { ProjectManager, UserPermission } from "@/database/tables";
+import { PermissionEnum } from "@/lib/constants";
+import NastranModel from "@/components/custom-ui/model/NastranModel";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import Shimmer from "@/components/custom-ui/shimmer/Shimmer";
+import BooleanStatusButton from "@/components/custom-ui/button/BooleanStatusButton";
+import { toLocaleDate } from "@/lib/utils";
 
 interface EditOrganizationStructureTabProps {
-  hasEdit: boolean;
+  permissions: UserPermission;
+  registerationExpired: boolean;
 }
 export default function EditOrganizationStructureTab(
   props: EditOrganizationStructureTabProps
 ) {
-  const { hasEdit } = props;
+  const { permissions, registerationExpired } = props;
   const { t } = useTranslation();
-  let { id } = useParams();
-  const [loading, setLoading] = useState(true);
+  const { id } = useParams();
+  const [state] = useGlobalState();
+  const [loading, setLoading] = useState(false);
   const [failed, setFailed] = useState(false);
-  const [projectStruction, setProjectStruction] = useState<
-    ProjectOrganizationStructureType | any
-  >(undefined);
-  const [error, setError] = useState<Map<string, string>>(new Map());
-
-  const loadInformation = async () => {
+  const [projectManagers, setProjectManagers] = useState<ProjectManager[]>([]);
+  const initialize = async () => {
     try {
-      const response = await axiosClient.get(
-        `projects/organization/structure/${id}`
-      );
-      if (response.status == 200) {
-        setProjectStruction(response.data);
+      if (loading) return;
+      setLoading(true);
+      // 2. Send data
+      const response = await axiosClient.get(`statuses/ngo/${id}`);
+      if (response.status === 200) {
+        const fetch = response.data.statuses as ProjectManager[];
+        setProjectManagers(fetch);
+        if (failed) setFailed(false);
       }
     } catch (error: any) {
       toast({
         toastType: "ERROR",
-        title: t("error"),
+        title: "Error!",
         description: error.response.data.message,
       });
-      console.log(error);
       setFailed(true);
-    }
-    setLoading(false);
-  };
-  useEffect(() => {
-    loadInformation();
-  }, []);
-  const saveData = async () => {
-    if (loading || id === undefined) {
-      setLoading(false);
-      return;
-    }
-    setLoading(true);
-    // 2. Validate form
-    const compulsoryFields: ValidateItem[] = [
-      {
-        name: "manager",
-        rules: [
-          (userData: any) => {
-            if (userData?.previous_manager) {
-              if (!userData?.manager) {
-                return true;
-              }
-            }
-            return false;
-          },
-        ],
-      },
-      {
-        name: "pro_manager_name_english",
-        rules: [
-          (userData: any) => {
-            if (!userData?.previous_manager) {
-              if (
-                !userData?.pro_manager_name_english ||
-                userData?.pro_manager_name_english?.trim() == ""
-              ) {
-                return true;
-              }
-            }
-            return false;
-          },
-        ],
-      },
-      {
-        name: "pro_manager_name_farsi",
-        rules: [
-          (userData: any) => {
-            if (!userData?.previous_manager) {
-              if (
-                !userData?.pro_manager_name_farsi ||
-                userData?.pro_manager_name_farsi?.trim() == ""
-              ) {
-                return true;
-              }
-            }
-            return false;
-          },
-        ],
-      },
-      {
-        name: "pro_manager_name_pashto",
-        rules: [
-          (userData: any) => {
-            if (!userData?.previous_manager) {
-              if (
-                !userData?.pro_manager_name_pashto ||
-                userData?.pro_manager_name_pashto?.trim() == ""
-              ) {
-                return true;
-              }
-            }
-            return false;
-          },
-        ],
-      },
-      {
-        name: "pro_manager_contact",
-        rules: [
-          (userData: any) => {
-            if (!userData?.previous_manager) {
-              if (
-                !userData?.pro_manager_contact ||
-                userData?.pro_manager_contact?.trim() == ""
-              ) {
-                return true;
-              }
-            }
-            return false;
-          },
-        ],
-      },
-      {
-        name: "pro_manager_email",
-        rules: [
-          (userData: any) => {
-            if (!userData?.previous_manager) {
-              if (
-                !userData?.pro_manager_email ||
-                userData?.pro_manager_email?.trim() == ""
-              ) {
-                return true;
-              }
-            }
-            return false;
-          },
-        ],
-      },
-    ];
-    const passed = await validate(compulsoryFields, projectStruction, setError);
-    if (!passed) {
-      setLoading(false);
-      return;
-    }
-
-    // 2. Store
-    try {
-      const response = await axiosClient.put("projects/budget", {
-        id: id,
-        previous_manager: projectStruction?.previous_manager,
-        pro_manager_email: projectStruction?.pro_manager_email,
-        pro_manager_contact: projectStruction?.pro_manager_contact,
-        pro_manager_name_pashto: projectStruction?.pro_manager_name_pashto,
-        pro_manager_name_farsi: projectStruction?.pro_manager_name_farsi,
-        pro_manager_name_english: projectStruction?.pro_manager_name_english,
-        manager: projectStruction?.manager?.id,
-      });
-      if (response.status == 200) {
-        toast({
-          toastType: "SUCCESS",
-          title: t("success"),
-          description: response.data.message,
-        });
-      }
-    } catch (error: any) {
-      toast({
-        toastType: "ERROR",
-        title: t("error"),
-        description: error.response.data.message,
-      });
-      setServerError(error.response.data.errors, setError);
-      console.log(error);
     } finally {
       setLoading(false);
     }
   };
-  const handleChange = (e: any) => {
-    const { name, value } = e.target;
-    setProjectStruction((prev: any) => ({
-      ...prev,
-      [name]: value,
-    }));
+  useEffect(() => {
+    initialize();
+  }, []);
+
+  const add = (projectManager: ProjectManager) => {
+    if (projectManager.is_active) {
+      const updatedUnFiltered = projectManagers.map((item) => {
+        return { ...item, is_active: false };
+      });
+      setProjectManagers([projectManager, ...updatedUnFiltered]);
+    } else {
+      setProjectManagers([projectManager, ...projectManager]);
+    }
   };
-  const projectManager = projectStruction?.previous_manager ? (
-    <APICombobox
-      placeholderText={t("search_item")}
-      errorText={t("no_item")}
-      onSelect={(selection: any) =>
-        setProjectStruction((prev: any) => ({
-          ...prev,
-          ["manager"]: selection,
-        }))
-      }
-      lable={t("manager")}
-      required={true}
-      requiredHint={`* ${t("required")}`}
-      selectedItem={projectStruction["manager"]?.name}
-      placeHolder={t("select_a")}
-      errorMessage={error.get("manager")}
-      apiUrl={"project-managers/names/" + id}
-      mode="single"
-      cacheData={false}
-    />
-  ) : (
-    <>
-      <BorderContainer
-        title={t("pro_manager_name")}
-        required={true}
-        parentClassName="p-t-4 pb-0 px-0"
-        className="grid grid-cols-1 gap-3"
-      >
-        <MultiTabInput
-          optionalKey={"optional_lang"}
-          onTabChanged={(key: string, tabName: string) => {
-            setProjectStruction((prev: any) => ({
-              ...prev,
-              [key]: tabName,
-              optional_lang: tabName,
-            }));
-          }}
-          onChanged={(value: string, name: string) => {
-            setProjectStruction((prev: any) => ({
-              ...prev,
-              [name]: value,
-            }));
-          }}
-          name="pro_manager_name"
-          highlightColor="bg-tertiary"
-          userData={projectStruction}
-          errorData={error}
-          placeholder={t("name")}
-          className="rtl:text-xl-rtl rounded-none border-t border-x-0 border-b-0 resize-none"
-          tabsClassName="gap-x-5 px-3"
-        >
-          <SingleTab>english</SingleTab>
-          <SingleTab>farsi</SingleTab>
-          <SingleTab>pashto</SingleTab>
-        </MultiTabInput>
-      </BorderContainer>
-      <CustomInput
-        size_="sm"
-        dir="ltr"
-        required={true}
-        requiredHint={`* ${t("required")}`}
-        className="rtl:text-end"
-        lable={t("pro_manager_contact")}
-        placeholder={t("contact")}
-        defaultValue={projectStruction?.pro_manager_contact}
-        type="text"
-        name="pro_manager_contact"
-        errorMessage={error.get("pro_manager_contact")}
-        onChange={handleChange}
-      />
-      <CustomInput
-        size_="sm"
-        dir="ltr"
-        required={true}
-        requiredHint={`* ${t("required")}`}
-        className="rtl:text-end"
-        lable={t("pro_manager_email")}
-        placeholder={t("email")}
-        defaultValue={projectStruction?.pro_manager_email}
-        type="email"
-        name="pro_manager_email"
-        errorMessage={error.get("pro_manager_email")}
-        onChange={handleChange}
-      />
-    </>
-  );
+
+  const per = permissions.sub.get(PermissionEnum.projects.sub.organ_structure);
+  const hasEdit = per?.edit;
   return (
     <Card>
-      <CardHeader className="space-y-0">
+      <CardHeader>
         <CardTitle className="rtl:text-3xl-rtl ltr:text-2xl-ltr">
-          {t("organ_structure")}
+          {t("status")}
         </CardTitle>
-        <CardDescription className="rtl:text-xl-rtl ltr:text-lg-ltr">
-          {t("update_organ_structure_info")}
-        </CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="grid gap-x-4 gap-y-6 w-full xl:w-1/">
         {failed ? (
           <h1 className="rtl:text-2xl-rtl">{t("u_are_not_authzed!")}</h1>
-        ) : loading ? (
-          <NastranSpinner />
         ) : (
-          <div className="flex flex-col mt-10 w-full lg:w-1/2 2xl:w-1/3 gap-y-6 pb-12">
-            <CustomCheckbox
-              parentClassName="space-x-0"
-              className=""
-              checked={projectStruction?.previous_manager}
-              text={t("previous_manager")}
-              description={t("already_manager")}
-              onCheckedChange={function (value: boolean): void {
-                setProjectStruction((prev: any) => ({
-                  ...prev,
-                  previous_manager: value,
-                }));
-              }}
-            />
-            {projectManager}
-          </div>
+          <>
+            {!registerationExpired && hasEdit && (
+              <NastranModel
+                size="lg"
+                isDismissable={false}
+                className="py-8"
+                button={
+                  <PrimaryButton className="text-primary-foreground">
+                    {t("change_status")}
+                  </PrimaryButton>
+                }
+                showDialog={async () => true}
+              >
+                <EditNgoStatusDialog onComplete={add} />
+              </NastranModel>
+            )}
+
+            <Table className="w-full border">
+              <TableHeader className="rtl:text-3xl-rtl ltr:text-xl-ltr">
+                <TableRow className="hover:bg-transparent">
+                  <TableHead className="text-start">{t("id")}</TableHead>
+                  <TableHead className="text-start">{t("name")}</TableHead>
+                  <TableHead className="text-start">{t("status")}</TableHead>
+                  <TableHead className="text-start">{t("email")}</TableHead>
+                  <TableHead className="text-start">{t("contact")}</TableHead>
+                  <TableHead className="text-start">{t("date")}</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody className="rtl:text-xl-rtl ltr:text-lg-ltr">
+                {loading ? (
+                  <>
+                    <TableRow>
+                      <TableCell>
+                        <Shimmer className="h-[24px] bg-primary/30 w-full rounded-sm" />
+                      </TableCell>
+                      <TableCell>
+                        <Shimmer className="h-[24px] bg-primary/30 w-full rounded-sm" />
+                      </TableCell>
+                      <TableCell>
+                        <Shimmer className="h-[24px] bg-primary/30 w-full rounded-sm" />
+                      </TableCell>
+                      <TableCell>
+                        <Shimmer className="h-[24px] bg-primary/30 w-full rounded-sm" />
+                      </TableCell>
+                      <TableCell>
+                        <Shimmer className="h-[24px] bg-primary/30 w-full rounded-sm" />
+                      </TableCell>
+                      <TableCell>
+                        <Shimmer className="h-[24px] bg-primary/30 w-full rounded-sm" />
+                      </TableCell>
+                    </TableRow>
+                  </>
+                ) : (
+                  projectManagers.map((item: ProjectManager, index: number) => (
+                    <TableRow key={index}>
+                      <TableCell>{item.id}</TableCell>
+                      <TableCell>{item.full_name}</TableCell>
+                      <TableCell>
+                        <BooleanStatusButton
+                          getColor={function (): {
+                            style: string;
+                            value?: string;
+                          } {
+                            return item.is_active
+                              ? {
+                                  style: "border-green-500/90",
+                                  value: t(""),
+                                }
+                              : {
+                                  style: "border-red-500",
+                                  value: t(""),
+                                };
+                          }}
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <BooleanStatusButton
+                          getColor={function (): {
+                            style: string;
+                            value?: string;
+                          } {
+                            return item.is_active
+                              ? {
+                                  style: "border-green-500/90",
+                                  value: t("currently"),
+                                }
+                              : {
+                                  style: "border-red-500",
+                                  value: t("formerly"),
+                                };
+                          }}
+                        />
+                      </TableCell>
+                      <TableCell className="truncate max-w-44">
+                        {item.email}
+                      </TableCell>
+                      <TableCell className="truncate max-w-44">
+                        {item.contact}
+                      </TableCell>
+                      <TableCell className="truncate">
+                        {toLocaleDate(new Date(item.created_at), state)}
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </>
         )}
       </CardContent>
-      <CardFooter>
-        {failed ? (
+
+      {failed && (
+        <CardFooter>
           <PrimaryButton
-            onClick={async () => await loadInformation()}
-            className="bg-red-500 hover:bg-red-500/70"
+            disabled={loading}
+            onClick={async () => await initialize()}
+            className={`${
+              loading && "opacity-90"
+            } bg-red-500 hover:bg-red-500/70`}
+            type="submit"
           >
-            {t("failed_retry")}
-            <RefreshCcw className="ltr:ml-2 rtl:mr-2" />
+            <ButtonSpinner loading={loading}>
+              {t("failed_retry")}
+              <RefreshCcw className="ltr:ml-2 rtl:mr-2" />
+            </ButtonSpinner>
           </PrimaryButton>
-        ) : (
-          projectStruction &&
-          hasEdit && (
-            <PrimaryButton onClick={saveData} className={`shadow-lg`}>
-              <ButtonSpinner loading={loading}>{t("save")}</ButtonSpinner>
-            </PrimaryButton>
-          )
-        )}
-      </CardFooter>
+        </CardFooter>
+      )}
     </Card>
   );
 }

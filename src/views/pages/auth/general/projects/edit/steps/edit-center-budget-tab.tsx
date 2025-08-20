@@ -134,11 +134,11 @@ export default function EditCenterBudgetTab(props: EditCenterBudgetTabProps) {
         : userData?.end_date,
     };
     // 2. Store
-    const formData = new FormData();
-    formData.append("id", id);
-    formData.append("content", JSON.stringify(content));
     try {
-      const response = await axiosClient.put("projects/budget", formData);
+      const response = await axiosClient.put("projects/budget", {
+        content: JSON.stringify(content),
+        id: id,
+      });
       if (response.status == 200) {
         toast({
           toastType: "SUCCESS",

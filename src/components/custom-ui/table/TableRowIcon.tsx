@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import { Edit, Eye, Trash2 } from "lucide-react";
+import { Edit, Eye, List, Trash2 } from "lucide-react";
 import React, { useState } from "react";
 import NastranSpinner from "../spinner/NastranSpinner";
 import { TableRow } from "@/components/ui/table";
@@ -8,14 +8,28 @@ interface TableRowIconProps extends React.HTMLAttributes<HTMLTableRowElement> {
   read?: boolean;
   remove?: boolean;
   edit?: boolean;
-  onRemove: (item: any) => Promise<void>;
-  onEdit: (item: any) => Promise<void>;
-  onRead: (item: any) => Promise<void>;
+  more?: boolean;
+  onRemove?: (item: any) => Promise<void>;
+  onEdit?: (item: any) => Promise<void>;
+  onRead?: (item: any) => Promise<void>;
+  onMore?: (item: any) => Promise<void>;
   item: any;
 }
 const TableRowIcon = React.forwardRef<HTMLTableRowElement, TableRowIconProps>(
   (
-    { className, read, edit, remove, onRemove, onEdit, onRead, item, ...props },
+    {
+      className,
+      read,
+      edit,
+      remove,
+      more,
+      onRemove,
+      onEdit,
+      onRead,
+      onMore,
+      item,
+      ...props
+    },
     ref
   ) => {
     const { children } = props;
@@ -35,12 +49,25 @@ const TableRowIcon = React.forwardRef<HTMLTableRowElement, TableRowIconProps>(
         <td>
           {showAction && (
             <div className="w-[110px] bg-primary py-1 rounded-full flex absolute top-1/2 transform -translate-y-1/2 ltr:right-2 rtl:left-2 justify-center gap-x-2">
+              {more && (
+                <div
+                  onClick={async () => {
+                    if (loading) return;
+                    setLoading(true);
+                    if (onMore) await onMore(item);
+                    setLoading(false);
+                  }}
+                  className="cursor-pointer hover:[&>*]:text-primary-foreground/70"
+                >
+                  <List className="text-primary-foreground size-[18px] transition" />
+                </div>
+              )}
               {read && !edit && (
                 <div
                   onClick={async () => {
                     if (loading) return;
                     setLoading(true);
-                    await onRead(item);
+                    if (onRead) await onRead(item);
                     setLoading(false);
                   }}
                   className="cursor-pointer hover:[&>*]:text-primary-foreground/70"
@@ -53,7 +80,7 @@ const TableRowIcon = React.forwardRef<HTMLTableRowElement, TableRowIconProps>(
                   onClick={async () => {
                     if (loading) return;
                     setLoading(true);
-                    await onEdit(item);
+                    if (onEdit) await onEdit(item);
                     setLoading(false);
                   }}
                   className="cursor-pointer hover:[&>*]:text-green-500/70"
@@ -67,7 +94,7 @@ const TableRowIcon = React.forwardRef<HTMLTableRowElement, TableRowIconProps>(
                   onClick={async () => {
                     if (loading) return;
                     setLoading(true);
-                    await onRemove(item);
+                    if (onRemove) await onRemove(item);
                     setLoading(false);
                   }}
                   className="cursor-pointer hover:[&>*]:text-red-400/70"

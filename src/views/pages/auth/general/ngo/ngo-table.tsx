@@ -490,7 +490,9 @@ export function NgoTable() {
                 read={hasView}
                 remove={false}
                 edit={false}
+                more={true}
                 onEdit={async () => {}}
+                onMore={async () => {}}
                 key={item.name}
                 item={item}
                 onRemove={deleteOnClick}

@@ -390,3 +390,12 @@ export interface ScheduleItem {
   projectId: number | null;
   project_name: string | undefined;
 }
+export type ProjectManager = {
+  id: string;
+  ngo_id: string;
+  full_name: number;
+  email: string;
+  contact: string;
+  is_active: boolean;
+  created_at: string;
+};
